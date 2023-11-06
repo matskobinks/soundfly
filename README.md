@@ -7,4 +7,7 @@ SoundFly est un lecteur audio multifonctions
 
 # Options :
 
-    - 
+    - Chercher et télécharger une musique grâce a l'API YouTube
+    - Stocker des fichiers audios
+    - Jouer le fichier audio
+    - Quitter l'application avec un bouton intégré

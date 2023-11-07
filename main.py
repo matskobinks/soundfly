@@ -319,6 +319,7 @@ class LecteurMusiqueApp(ctk.CTk):
         self.status_label.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
         self.volume_slider.grid(row=8, column=0, padx=10, pady=10)
         self.supprimer_button.grid(row=1, column=3, padx=10, pady=10)
+        self.selectionner_mp3_button.grid(row=0, column=3, padx=10, pady=10)
 
     def rechercher_chanson(self):
         """

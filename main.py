@@ -32,6 +32,7 @@ install_and_import('subprocess')
 install_and_import('importlib')
 install_and_import('os')
 install_and_import('re')
+install_and_import('tkinter')
 
 import customtkinter as ctk
 from pytube import YouTube
@@ -210,7 +211,8 @@ class LecteurMusiqueApp(ctk.CTk):
             os.makedirs(dossier_musique)
 
         self.title("Lecteur de Musique YouTube")
-        self.geometry("750x450")
+        self.geometry("820x520")
+        self.resizable(width=False, height=False)
 
         self.lecteur = LecteurMusiqueYouTube(api_key)
         self.current_page = 0  # Page actuelle des musiques téléchargées
@@ -229,21 +231,35 @@ class LecteurMusiqueApp(ctk.CTk):
                                              command=self.afficher_musiques_telechargees)
         self.afficher_button.grid(row=1, column=0, padx=10, pady=10)
 
-        self.arreter_button = ctk.CTkButton(self, text="Arrêter la lecture", command=self.arreter_lecture)
+        self.arreter_button = ctk.CTkButton(self, text="Pause", command=self.arreter_lecture)
         self.arreter_button.grid(row=1, column=1, padx=10, pady=10)
 
         self.quitter_button = ctk.CTkButton(self, text="Quitter", command=self.quitter)
         self.quitter_button.grid(row=1, column=2, padx=10, pady=10)
 
-        self.supprimer_button = ctk.CTkButton(self, text="Effacer le cache", command=self.nettoyer_musique)
+        self.supprimer_button = ctk.CTkButton(self, text="Effacer cache", command=self.nettoyer_musique)
         self.supprimer_button.grid(row=1, column=3, padx=10, pady=10)
 
         self.status_label = ctk.CTkLabel(self, text="")
         self.status_label.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
 
-        self.resizable(width=False, height=False)
-        self.geometry("750x450")
+        self.volume_slider = ctk.CTkSlider(self, from_=0, to=100, command=self.volume)
+        self.volume_slider.grid(row=8, column=0, padx=10, pady=10,sticky="w")
+        
+        
+    def volume(self, volume):
+        """
+        Methode qui permet de faire fonctionner le bouton du son.
 
+        Args:
+            volume (str): Le volume du slider.
+        """
+        try:
+            volume = int(volume)
+        except ValueError:
+            return
+        pygame.mixer.music.set_volume(volume / 100)
+    
     def raccourcir_nom_musique(self, nom_musique, longueur_max=20):
         """
         Raccourcit un nom de musique si sa longueur dépasse la longueur maximale spécifiée.
@@ -256,7 +272,7 @@ class LecteurMusiqueApp(ctk.CTk):
             str: Le nom de la musique raccourci.
         """
         if len(nom_musique) > longueur_max:
-            return nom_musique[:longueur_max] + "..."
+            return nom_musique[:longueur_max] + "..." + "mp3"
         else:
             return nom_musique
 
@@ -265,7 +281,7 @@ class LecteurMusiqueApp(ctk.CTk):
         bouton permettant de remonter en haut de page.
         '''
         bouton_retour = ctk.CTkButton(self, text="↑", command=self.afficher_page_principale)
-        bouton_retour.grid(row=self.max_music_per_page + 1, column=2, padx=20, pady=5, sticky="w")
+        bouton_retour.grid(row=self.max_music_per_page + 3, column=2, padx=30, pady=5, sticky="w")
 
     def afficher_page_principale(self):
         """
@@ -282,6 +298,8 @@ class LecteurMusiqueApp(ctk.CTk):
         self.arreter_button.grid(row=1, column=1, padx=10, pady=10)
         self.quitter_button.grid(row=1, column=2, padx=10, pady=10)
         self.status_label.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
+        self.volume_slider.grid(row=8, column=0, padx=10, pady=10)
+        self.supprimer_button.grid(row=1, column=3, padx=10, pady=10)
 
     def rechercher_chanson(self):
         """

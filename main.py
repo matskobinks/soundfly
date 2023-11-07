@@ -18,6 +18,7 @@ def install_and_import(module_name):
         importlib.import_module(module_name)
     except ImportError:
         subprocess.check_call(["python", "-m", "pip", "install", module_name])
+        print("bibliothèques telechargées")
     finally:
         globals()[module_name] = importlib.import_module(module_name)
 
@@ -340,7 +341,7 @@ class LecteurMusiqueApp(ctk.CTk):
             except:
                 print("")
 
-        self.status_label.configure(text="Dossier musique nettoyé (redémarer l'application pour appliquer).")
+        self.status_label.configure(text="Dossier musique nettoyé (Redémarrer l'application pour appliquer).")
 
     def jouer_musique(self, fichier_audio):
         # Jouez la musique à partir du fichier audio MP3

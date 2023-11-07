@@ -30,9 +30,9 @@ install_and_import('packaging')
 install_and_import('requests')
 install_and_import('subprocess')
 install_and_import('importlib')
-install_and_import('os')
-install_and_import('re')
+install_and_import('shutil')
 install_and_import('tkinter')
+
 
 import customtkinter as ctk
 from pytube import YouTube
@@ -245,6 +245,25 @@ class LecteurMusiqueApp(ctk.CTk):
 
         self.volume_slider = ctk.CTkSlider(self, from_=0, to=100, command=self.volume)
         self.volume_slider.grid(row=8, column=0, padx=10, pady=10,sticky="w")
+        
+        self.selectionner_mp3_button = ctk.CTkButton(self, text="Fichier local", command=self.selectionner_mp3)
+        self.selectionner_mp3_button.grid(row=0, column=3, padx=10, pady=10)
+
+    def selectionner_mp3(self):
+        """
+        Ouvre une boîte de dialogue pour sélectionner un fichier MP3 depuis l'ordinateur
+        et le copie dans le répertoire "musique".
+        """
+        file_path = ctk.filedialog.askopenfilename(filetypes=[("Fichiers MP3", "*.mp3")])
+
+        if file_path:
+            # Copie le fichier sélectionné dans le répertoire "musique"
+            file_name = os.path.basename(file_path)
+            dossier_musique = os.path.join(os.path.dirname(__file__), "musique")
+            destination_path = os.path.join(dossier_musique, file_name)
+            shutil.copy(file_path, destination_path)
+
+            self.status_label.configure(text=f"MP3 ajouté avec succès : {file_name}")
         
         
     def volume(self, volume):

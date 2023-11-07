@@ -3,14 +3,38 @@
 ###################################       SoundFly       #######################################
 ################################################################################################
 
+# bibliothèques natives de python
+import subprocess
+import importlib
 import os
-import requests
+import re
+
+def install_and_import(module_name):
+    '''
+    Args:
+        module_name (str): nom du module à télécharger et importer
+    '''    
+    try:
+        importlib.import_module(module_name)
+    except ImportError:
+        subprocess.check_call(["python", "-m", "pip", "install", module_name])
+    finally:
+        globals()[module_name] = importlib.import_module(module_name)
+
+install_and_import('pytube')
+install_and_import('moviepy')
+install_and_import('pygame')
+install_and_import('customtkinter')
+install_and_import('packaging')
+install_and_import('requests')
+install_and_import('subprocess')
+install_and_import('importlib')
+install_and_import('os')
+install_and_import('re')
+
+import customtkinter as ctk
 from pytube import YouTube
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_audio
-import pygame
-import re
-import customtkinter as ctk
-
 
 class LecteurMusiqueYouTube:
     """
@@ -69,11 +93,6 @@ class LecteurMusiqueYouTube:
         return fichiers_mp3
     
     def jouer_musique(self, fichier_audio):
-        # Stop the video if one is playing
-        if self.video_display:
-            self.video_display.stop()
-
-        # Play the audio from the MP3 file
         self.lecteur.arreter_lecture()
         self.lecteur.jouer_chanson(fichier_audio)
         self.status_label.configure(text=f"En train de jouer : {fichier_audio}")
@@ -82,14 +101,6 @@ class LecteurMusiqueYouTube:
         video_filename = fichier_audio.replace('.mp3', '.mp4')
         if os.path.exists(video_filename):
             self.afficher_video(video_filename)
-
-    def afficher_video(self, video_filename):
-        if self.video_display:
-            self.video_display.stop()
-
-        movie = pygame.movie.Movie(video_filename)
-        self.video_display = movie
-        movie.set_display(self)
 
 
     def rechercher_chanson(self, recherche):
@@ -249,9 +260,9 @@ class LecteurMusiqueApp(ctk.CTk):
             return nom_musique
 
     def ajouter_bouton_retour(self):
-        """
-        Ajoute un bouton de retour à la page principale.
-        """
+        '''
+        bouton permettant de remonter en haut de page.
+        '''
         bouton_retour = ctk.CTkButton(self, text="↑", command=self.afficher_page_principale)
         bouton_retour.grid(row=self.max_music_per_page + 1, column=2, padx=20, pady=5, sticky="w")
 
@@ -316,7 +327,9 @@ class LecteurMusiqueApp(ctk.CTk):
             self.status_label.configure(text="Aucune musique déjà téléchargée.")
 
     def nettoyer_musique(self):
-        """Nettoie le dossier musique en supprimant tous les fichiers MP3."""
+        """
+        Nettoie le dossier musique en supprimant tous les fichiers MP3.
+        """
         dossier_musique = os.path.join(os.path.dirname(__file__), "musique")  # Répertoire "musique"
         fichiers_mp3 = [fichier for fichier in os.listdir(dossier_musique) if fichier.endswith(".mp3")]
 
@@ -327,22 +340,28 @@ class LecteurMusiqueApp(ctk.CTk):
             except:
                 print("")
 
-        self.status_label.configure(text="Dossier musique nettoyé.")
+        self.status_label.configure(text="Dossier musique nettoyé (redémarer l'application pour appliquer).")
 
     def jouer_musique(self, fichier_audio):
         # Jouez la musique à partir du fichier audio MP3
+        """
+        Args:
+            fichier_audio (str): prend le nom du fichier audio pour pouvoir le lire
+        """
         self.lecteur.arreter_lecture()
         self.lecteur.jouer_chanson(fichier_audio)
         self.status_label.configure(text=f"En train de jouer : {fichier_audio}")
 
     def arreter_lecture(self):
-        # Arrêtez la lecture de la chanson et la vidéo
+        """
+        Arrête Pygame et quitte l'application.
+        """
         self.lecteur.arreter_lecture()
-        if self.video_display:
-            self.video_display.quit()
 
     def quitter(self):
-        """Arrête Pygame et quitte l'application."""
+        """
+        Arrête Pygame et quitte l'application.
+        """
         pygame.quit()
         self.quit()
 
@@ -363,6 +382,7 @@ class LecteurMusiqueApp(ctk.CTk):
 
 
 if __name__ == "__main__":
+    #setx api_key "api-key" pour crée variable d'environement
     api_key = "AIzaSyBnrifjZ0vneVjtV2vfLx3y7uWocMmEIrs"
     app = LecteurMusiqueApp(api_key)
 

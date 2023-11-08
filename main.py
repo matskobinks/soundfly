@@ -1,42 +1,16 @@
-########################## Projet réalisé par Marwane et Mathis ################################
-################################################################################################
-###################################       SoundFly       #######################################
-################################################################################################
+######################### Projet réalisé par Marwane et Mathis ###############################
+##############################################################################################
+#################################       SoundFly       #######################################
+##############################################################################################
 
-# bibliothèques natives de python
-import subprocess
-import importlib
-import os
-import re
-
-def install_and_import(module_name):
-    '''
-    Args:
-        module_name (str): nom du module à télécharger et importer
-    '''    
-    try:
-        importlib.import_module(module_name)
-    except ImportError:
-        subprocess.check_call(["python", "-m", "pip", "install", module_name])
-        print("bibliothèques telechargées")
-    finally:
-        globals()[module_name] = importlib.import_module(module_name)
-
-install_and_import('pytube')
-install_and_import('moviepy')
-install_and_import('pygame')
-install_and_import('customtkinter')
-install_and_import('packaging')
-install_and_import('requests')
-install_and_import('subprocess')
-install_and_import('importlib')
-install_and_import('shutil')
-install_and_import('tkinter')
-
-
+import os, re, shutil
+import pygame
+import requests
 import customtkinter as ctk
 from pytube import YouTube
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_audio
+
+print("BIENVENUE, passer un bon moment sur SoundFly")
 
 class LecteurMusiqueYouTube:
     """
@@ -237,7 +211,7 @@ class LecteurMusiqueApp(ctk.CTk):
         self.quitter_button = ctk.CTkButton(self, text="Quitter", command=self.quitter)
         self.quitter_button.grid(row=1, column=2, padx=10, pady=10)
 
-        self.supprimer_button = ctk.CTkButton(self, text="Effacer cache", command=self.nettoyer_musique)
+        self.supprimer_button = ctk.CTkButton(self, text="Effacer les musiques", command=self.nettoyer_musique)
         self.supprimer_button.grid(row=1, column=3, padx=10, pady=10)
 
         self.status_label = ctk.CTkLabel(self, text="")
@@ -246,7 +220,7 @@ class LecteurMusiqueApp(ctk.CTk):
         self.volume_slider = ctk.CTkSlider(self, from_=0, to=100, command=self.volume)
         self.volume_slider.grid(row=8, column=0, padx=10, pady=10,sticky="w")
         
-        self.selectionner_mp3_button = ctk.CTkButton(self, text="Fichier local", command=self.selectionner_mp3)
+        self.selectionner_mp3_button = ctk.CTkButton(self, text="Ouvrir un fichier local", command=self.selectionner_mp3)
         self.selectionner_mp3_button.grid(row=0, column=3, padx=10, pady=10)
 
     def selectionner_mp3(self):

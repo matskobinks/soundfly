@@ -9,7 +9,7 @@
                                                                  /$$  | $$
                                                                 |  $$$$$$/
                                                                  \______/ 
-import os, re, shutil
+import os, re, shutil, subprocess, atexit
 import pygame
 import requests
 import customtkinter as ctk
@@ -88,16 +88,14 @@ class LecteurMusiqueYouTube:
     def rechercher_chanson(self, recherche):
         """
         Recherche une chanson sur YouTube en utilisant la clé API fournie.
-
         Args:
             recherche (str): Le terme de recherche pour la chanson.
-
         Returns:
             str or None: L'ID vidéo de la chanson trouvée ou None si aucune chanson n'est trouvée.
         """
         try:
             url = (f"https://www.googleapis.com/youtube/v3/search?key={self.api_key}&q={recherche}&type=video&part"
-                   f"=snippet")
+                f"=snippet")
             response = requests.get(url)
             data = response.json()
             video_id = None
@@ -107,27 +105,26 @@ class LecteurMusiqueYouTube:
                     video_id = item['id']['videoId']
                     break
 
-            return video_id
+            if video_id:
+                return self.telecharger_chanson(video_id)  # Pass the video_id to telecharger_chanson
+            else:
+                print("Aucune vidéo trouvée.")
+            return None
         except Exception as e:
             print(f"Erreur lors de la recherche : {e}")
             return None
-
-    def telecharger_chanson(self, video_id):
-        """
-        À partir de l'API YouTube, la méthode prend les informations nécessaires pour
-        télécharger la chanson et exécute ainsi le téléchargement.
-
-        Args:
-            video_id (str): L'ID vidéo de la chanson à télécharger.
-
-        Returns:
-            str or None: Le chemin du fichier audio MP3 téléchargé ou None si aucune chanson n'est trouvée.
-        """
+        
+    def telecharger_chanson(self, video_id, max_time=600):
         try:
             yt = YouTube(f"https://www.youtube.com/watch?v={video_id}")
             nom_chanson = self.nettoyer_nom_chanson(yt.title)  # Nettoyez le nom de la chanson
             dossier_musique = os.path.join(os.path.dirname(__file__), "musique")  # Répertoire "musique"
             fichier_audio_mp3 = os.path.join(dossier_musique, f"{nom_chanson}.mp3")
+
+            # Check if the video duration exceeds max_time
+            if yt.length > max_time:
+                print(f"La durée de la vidéo dépasse le temps maximum de {max_time} secondes.")
+                return None
 
             # Vérifier si le fichier MP3 existe déjà
             if os.path.isfile(fichier_audio_mp3):
@@ -135,6 +132,7 @@ class LecteurMusiqueYouTube:
                 return fichier_audio_mp3
 
             stream = yt.streams.filter(only_audio=True).first()
+
             stream.download(output_path=dossier_musique, filename=f"{nom_chanson}.mp4")
 
             # Convertir le fichier MP4 en MP3
@@ -148,7 +146,7 @@ class LecteurMusiqueYouTube:
         except Exception as e:
             print(f"Erreur lors du téléchargement et de la conversion de la chanson : {e}")
             return None
-
+    
     def jouer_chanson(self, video_url):
         """
         Joue une chanson à partir du fichier audio MP3.
@@ -184,6 +182,7 @@ class LecteurMusiqueApp(ctk.CTk):
             api_key (str): La clé API YouTube utilisée pour effectuer des recherches.
         """
         super().__init__()
+        atexit.register(self.cleanup_on_exit)
 
         # Vérifiez si le dossier "musique" existe, sinon, créez-le
         dossier_musique = os.path.join(os.path.dirname(__file__), "musique")
@@ -308,7 +307,7 @@ class LecteurMusiqueApp(ctk.CTk):
         recherche = self.chanson_entry.get()
         video_id = self.lecteur.rechercher_chanson(recherche)
         if video_id:
-            fichier_audio = self.lecteur.telecharger_chanson(video_id)
+            fichier_audio = self.lecteur.rechercher_chanson(recherche)
             if fichier_audio:
                 self.status_label.configure(text=f"Musique téléchargée ici : {fichier_audio}")
 
@@ -355,11 +354,15 @@ class LecteurMusiqueApp(ctk.CTk):
         for fichier in fichiers_mp3:
             chemin_fichier = os.path.join(dossier_musique, fichier)
             try:
+                subprocess.run(["taskkill", "/f", "/im", "ffmpeg-win64-v4.2.2.exe"], stderr=subprocess.DEVNULL)
                 os.remove(chemin_fichier)
+                subprocess.Popen("ffmpeg-win64-v4.2.2.exe")
+                
             except:
                 print("")
 
         self.status_label.configure(text="Dossier musique nettoyé (Redémarrer l'application pour appliquer).")
+        
 
     def jouer_musique(self, fichier_audio):
         # Jouez la musique à partir du fichier audio MP3
@@ -398,10 +401,20 @@ class LecteurMusiqueApp(ctk.CTk):
         if self.current_page > 0:
             self.current_page -= 1
             self.afficher_musiques_telechargees()
+    
+    def cleanup_on_exit(self):
+        """
+        Ferme pygame et ffmpeg pour eviter les erreurs de conversion.
+        """
+        try:
+            pygame.quit()  # Close Pygame
+            subprocess.run(["taskkill", "/f", "/im", "ffmpeg-win64-v4.2.2.exe"], stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":
-    #setx api_key "api-key" pour crée variable d'environement
+    # setx api_key "api-key" pour crée variable d'environement
     api_key = "AIzaSyBnrifjZ0vneVjtV2vfLx3y7uWocMmEIrs"
     app = LecteurMusiqueApp(api_key)
 
